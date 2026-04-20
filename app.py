@@ -132,6 +132,15 @@ def init_state(m=4, path=None):
 
 
 # ── session state ──────────────────────────────────────────────────────────────
+STATE_VERSION = 2
+if st.session_state.get("_v") != STATE_VERSION:
+    for k in list(st.session_state.keys()):
+        del st.session_state[k]
+    st.session_state._v = STATE_VERSION
+    st.session_state.puzzle = None
+    st.session_state.active_path = None
+    st.session_state.draw_path = []
+
 if "puzzle" not in st.session_state:
     st.session_state.puzzle = None
 if "active_path" not in st.session_state:
