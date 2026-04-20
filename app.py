@@ -138,10 +138,6 @@ if "active_path" not in st.session_state:
     st.session_state.active_path = None
 if "draw_path" not in st.session_state:
     st.session_state.draw_path = []
-if "draw_start" not in st.session_state:
-    st.session_state.draw_start = None
-if "draw_end" not in st.session_state:
-    st.session_state.draw_end = None
 if "show_editor" not in st.session_state:
     st.session_state.show_editor = False
 
@@ -214,21 +210,6 @@ if st.session_state.show_editor:
                         st.session_state.draw_path.pop()
                     st.rerun()
 
-        # start / end overrides
-        if len(draw_path) >= 2:
-            cell_labels = [str(c) for c in draw_path]
-            se_cols = st.columns(2)
-            with se_cols[0]:
-                si = st.selectbox("Start", range(len(draw_path)),
-                                  format_func=lambda i: str(draw_path[i]),
-                                  index=0, key="sel_start")
-            with se_cols[1]:
-                ei = st.selectbox("Exit", range(len(draw_path)),
-                                  format_func=lambda i: str(draw_path[i]),
-                                  index=len(draw_path) - 1, key="sel_end")
-            st.session_state.draw_start = draw_path[si]
-            st.session_state.draw_end = draw_path[ei]
-
         action_cols = st.columns(3)
         with action_cols[0]:
             if st.button("↩ Undo", use_container_width=True, disabled=len(draw_path) == 0):
@@ -237,16 +218,11 @@ if st.session_state.show_editor:
         with action_cols[1]:
             if st.button("Clear", use_container_width=True):
                 st.session_state.draw_path = []
-                st.session_state.draw_start = None
-                st.session_state.draw_end = None
                 st.rerun()
         with action_cols[2]:
-            can_apply = len(draw_path) >= 2 and st.session_state.draw_start != st.session_state.draw_end
+            can_apply = len(draw_path) >= 2
             if st.button("Apply", use_container_width=True, disabled=not can_apply, type="primary"):
-                # reorder path so it runs from start to end
-                si = draw_path.index(st.session_state.draw_start)
-                ei = draw_path.index(st.session_state.draw_end)
-                final_path = draw_path[si:ei+1] if si <= ei else list(reversed(draw_path[ei:si+1]))
+                final_path = list(draw_path)  # first = start, last = exit
                 st.session_state.active_path = final_path
                 active_path = final_path
                 st.session_state.puzzle = ZigguPuzzle(m=m, path=final_path)
