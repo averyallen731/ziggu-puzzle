@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"from pypdf import PdfReader; r = PdfReader\\('Ziggu FUN.pdf'\\); print\\('Pages:', len\\(r.pages\\)\\)\")",
+      "Bash(pip install *)",
+      "Bash(streamlit run *)",
+      "Bash(echo \"PID=$!\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8765/)",
+      "Read(//tmp/**)",
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git -c user.email=averyallen731@gmail.com -c user.name=\"Avery Allen\" commit -q -m \"Initial Ziggu maze simulator\")",
+      "Bash(git -c user.email=averyallen731@gmail.com -c user.name=\"Avery Allen\" commit -m \"Fix maze orientation, custom path editor with start/end selection\")",
+      "Bash(git push *)"
+    ]
+  }
+}
