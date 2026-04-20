@@ -138,8 +138,6 @@ if "active_path" not in st.session_state:
     st.session_state.active_path = None
 if "draw_path" not in st.session_state:
     st.session_state.draw_path = []
-if "show_editor" not in st.session_state:
-    st.session_state.show_editor = False
 
 puzzle = st.session_state.puzzle
 active_path = st.session_state.active_path
@@ -149,9 +147,6 @@ st.title("Ziggu Mazes")
 top = st.columns([2, 2, 1, 1])
 with top[0]:
     m = st.slider("Mazes (m)", 1, 8, puzzle.m if puzzle else 4)
-with top[1]:
-    edit_toggle = st.toggle("Edit maze shape", value=st.session_state.show_editor)
-    st.session_state.show_editor = edit_toggle
 with top[2]:
     st.write("")
     if puzzle and st.button("Reset", use_container_width=True):
@@ -165,7 +160,7 @@ if puzzle and puzzle.m != m:
     puzzle = st.session_state.puzzle
 
 # ── maze shape editor ──────────────────────────────────────────────────────────
-if st.session_state.show_editor:
+if True:
     st.divider()
     st.subheader("Maze Shape Editor")
     st.caption("Click cells in order to draw your path. **Green = start**, **orange = exit**. Each cell must be adjacent (no diagonals).")
