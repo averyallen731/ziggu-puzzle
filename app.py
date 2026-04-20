@@ -133,9 +133,9 @@ def init_state(m=4, path=None):
 
 # ── session state ──────────────────────────────────────────────────────────────
 if "puzzle" not in st.session_state:
-    st.session_state.puzzle = ZigguPuzzle()
+    st.session_state.puzzle = None
 if "active_path" not in st.session_state:
-    st.session_state.active_path = list(DEFAULT_PATH)
+    st.session_state.active_path = None
 if "draw_path" not in st.session_state:
     st.session_state.draw_path = []
 if "draw_start" not in st.session_state:
@@ -145,26 +145,27 @@ if "draw_end" not in st.session_state:
 if "show_editor" not in st.session_state:
     st.session_state.show_editor = False
 
-puzzle: ZigguPuzzle = st.session_state.puzzle
-active_path: list = st.session_state.active_path
+puzzle = st.session_state.puzzle
+active_path = st.session_state.active_path
 
 # ── top bar ────────────────────────────────────────────────────────────────────
 st.title("Ziggu Mazes")
 top = st.columns([2, 2, 1, 1])
 with top[0]:
-    m = st.slider("Mazes (m)", 1, 8, puzzle.m)
+    m = st.slider("Mazes (m)", 1, 8, puzzle.m if puzzle else 4)
 with top[1]:
     edit_toggle = st.toggle("Edit maze shape", value=st.session_state.show_editor)
     st.session_state.show_editor = edit_toggle
 with top[2]:
     st.write("")
-    if st.button("Reset", use_container_width=True):
-        st.session_state.puzzle = ZigguPuzzle(m=m, path=active_path if active_path != DEFAULT_PATH else None)
+    if puzzle and st.button("Reset", use_container_width=True):
+        st.session_state.puzzle = ZigguPuzzle(m=m, path=active_path)
         st.rerun()
 
 # rebuild puzzle if m changed
-if puzzle.m != m:
-    st.session_state.puzzle = ZigguPuzzle(m=m, path=active_path if active_path != DEFAULT_PATH else None)
+if puzzle and puzzle.m != m:
+    st.session_state.puzzle = ZigguPuzzle(m=m, path=active_path)
+    puzzle = st.session_state.puzzle
     puzzle = st.session_state.puzzle
 
 # ── maze shape editor ──────────────────────────────────────────────────────────
@@ -254,49 +255,51 @@ if st.session_state.show_editor:
 
 # ── maze display ───────────────────────────────────────────────────────────────
 st.divider()
-cols = st.columns(m)
-for ui_idx, col in enumerate(cols):
-    internal_idx = ui_idx
-    slide_label = m - ui_idx
-    color = color_for(slide_label, m)
-    pos = puzzle.positions[internal_idx]
+if not puzzle or not active_path:
+    st.info("Draw a maze shape above and click **Apply** to start.")
+else:
+    cols = st.columns(m)
+    for ui_idx, col in enumerate(cols):
+        internal_idx = ui_idx
+        slide_label = m - ui_idx
+        color = color_for(slide_label, m)
+        pos = puzzle.positions[internal_idx]
 
-    with col:
-        st.markdown(
-            f"<div style='text-align:center;font-weight:600;color:{color};margin-bottom:4px'>"
-            f"Maze {slide_label}</div>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"<div style='display:flex;justify-content:center'>"
-            f"{render_maze_svg(pos, color, active_path)}</div>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"<div style='text-align:center;font-family:monospace;font-size:13px;"
-            f"margin-top:4px'>({pos[0]}, {pos[1]})</div>",
-            unsafe_allow_html=True,
-        )
-        b1, b2 = st.columns(2)
-        with b1:
-            if st.button("− back", key=f"back_{internal_idx}",
-                         disabled=not puzzle.can_move(internal_idx, -1),
-                         use_container_width=True):
-                puzzle.move(internal_idx, -1)
-                st.rerun()
-        with b2:
-            if st.button("+ fwd", key=f"fwd_{internal_idx}",
-                         disabled=not puzzle.can_move(internal_idx, +1),
-                         use_container_width=True):
-                puzzle.move(internal_idx, +1)
-                st.rerun()
+        with col:
+            st.markdown(
+                f"<div style='text-align:center;font-weight:600;color:{color};margin-bottom:4px'>"
+                f"Maze {slide_label}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f"<div style='display:flex;justify-content:center'>"
+                f"{render_maze_svg(pos, color, active_path)}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f"<div style='text-align:center;font-family:monospace;font-size:13px;"
+                f"margin-top:4px'>({pos[0]}, {pos[1]})</div>",
+                unsafe_allow_html=True,
+            )
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("− back", key=f"back_{internal_idx}",
+                             disabled=not puzzle.can_move(internal_idx, -1),
+                             use_container_width=True):
+                    puzzle.move(internal_idx, -1)
+                    st.rerun()
+            with b2:
+                if st.button("+ fwd", key=f"fwd_{internal_idx}",
+                             disabled=not puzzle.can_move(internal_idx, +1),
+                             use_container_width=True):
+                    puzzle.move(internal_idx, +1)
+                    st.rerun()
 
-# ── stats ──────────────────────────────────────────────────────────────────────
-st.divider()
-c1, c2, c3 = st.columns(3)
-c1.metric("Moves", puzzle.moves)
-c2.metric("State string", puzzle.state_string())
-c3.metric("Solved?", "YES 🎉" if puzzle.is_solved() else "no")
+    st.divider()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Moves", puzzle.moves)
+    c2.metric("State string", puzzle.state_string())
+    c3.metric("Solved?", "YES 🎉" if puzzle.is_solved() else "no")
 
 with st.expander("How it works"):
     st.markdown("""
